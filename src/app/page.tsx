@@ -3,7 +3,36 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { buttonVariants } from "@/components/ui/button";
 
-export default function IndexPage() {
+interface Data {
+  headers: Record<string, string>;
+  cookies: string[];
+  body: string;
+}
+
+async function getData() {
+  const res = await fetch(
+    "https://d90u7r8fr6.execute-api.us-east-1.amazonaws.com",
+    {
+      next: { revalidate: 10 },
+      headers: {
+        "x-hello-world": "baba booey",
+      },
+    }
+  );
+  // The return value is *not* serialized
+  // You can return Date, Map, Set, etc.
+  // Recommendation: handle errors
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json() as Promise<Data>;
+}
+
+export default async function IndexPage() {
+  const data = await getData();
+
   return (
     <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
       <div className="flex max-w-[980px] flex-col items-start gap-2">
@@ -34,6 +63,7 @@ export default function IndexPage() {
           GitHub
         </Link>
       </div>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </section>
   );
 }
